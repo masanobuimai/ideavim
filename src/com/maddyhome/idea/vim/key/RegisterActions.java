@@ -15,11 +15,16 @@
  */
 package com.maddyhome.idea.vim.key;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.maddyhome.idea.vim.command.Argument;
 import com.maddyhome.idea.vim.command.Command;
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
+import groovy.lang.Script;
 
 import javax.swing.*;
 import java.awt.event.KeyEvent;
+import java.io.File;
 
 /**
  * This registers all the key/action mappings for the plugin
@@ -33,8 +38,27 @@ public class RegisterActions {
     return instance;
   }
 
+  private static Logger logger = Logger.getInstance(RegisterActions.class.getName());
+
   private RegisterActions() {
     KeyParser parser = KeyParser.getInstance();
+
+    try {
+      String home = System.getProperty("user.home");
+      if (home != null) {
+        File rc = new File(home, "_ideavimrc.groovy");
+        if (rc.exists()) {
+          Script script = new GroovyShell(getClass().getClassLoader()).parse(rc);
+          Binding binding = new Binding();
+          binding.setVariable("parser", parser);
+          script.setBinding(binding);
+          script.run();
+        }
+      }
+    } catch (Exception e) {
+      logger.error(e);
+    }
+
 
     // ******************* Insert Mode Actions **********************
     // Delegation actions
