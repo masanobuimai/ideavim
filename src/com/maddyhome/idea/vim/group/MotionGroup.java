@@ -338,6 +338,10 @@ public class MotionGroup extends AbstractActionGroup {
     return SearchHelper.findParagraphRange(editor, count, isOuter);
   }
 
+  public TextRange getQuoteRange(Editor editor, DataContext context, int count, boolean isOuter, char quoteChar) {
+    return SearchHelper.findQuoteRange(editor, quoteChar, count, isOuter);
+  }
+
   /**
    * This helper method calculates the complete range a motion will move over taking into account whether
    * the motion is FLAG_MOT_LINEWISE or FLAG_MOT_CHARACTERWISE (FLAG_MOT_INCLUSIVE or FLAG_MOT_EXCLUSIVE).

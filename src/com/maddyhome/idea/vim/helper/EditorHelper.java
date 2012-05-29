@@ -48,6 +48,17 @@ public class EditorHelper {
     return editor.getCaretModel().getVisualPosition().line - getVisualLineAtTopOfScreen(editor) + 1;
   }
 
+
+  /**
+   * Gets the logical line number the cursor is on
+   * @param editor The editor
+   * @return The cursor's logical line number
+   */
+  public static int getCurrentLogicalLine(Editor editor) {
+    return editor.getCaretModel().getLogicalPosition().line;
+  }
+
+
   /**
    * Gets the number of characters on the current line. This will be different than the number of visual
    * characters if there are "real" tabs in the line.

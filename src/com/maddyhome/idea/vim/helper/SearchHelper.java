@@ -28,6 +28,7 @@ import com.maddyhome.idea.vim.option.OptionChangeEvent;
 import com.maddyhome.idea.vim.option.OptionChangeListener;
 import com.maddyhome.idea.vim.option.Options;
 
+import java.nio.CharBuffer;
 import java.util.List;
 
 /**
@@ -1643,4 +1644,41 @@ public class SearchHelper {
   private static String blockChars = "{}()[]<>";
 
   private static Logger logger = Logger.getInstance(SearchHelper.class.getName());
+
+
+
+  public static TextRange findQuoteRange(Editor editor, char type, int count, boolean isOuter) {
+    int pos = editor.getCaretModel().getOffset();
+    int line = EditorHelper.getCurrentLogicalLine(editor);
+    int lineOffset = EditorHelper.getLineStartOffset(editor, line);
+
+    CharBuffer charBuffer = EditorHelper.getLineBuffer(editor, line);
+
+    int qstart = findQuoteLocation(charBuffer, type, pos - lineOffset, -1);
+    if (qstart == -1) return null;
+
+    int qend = findQuoteLocation(charBuffer, type, pos - lineOffset, 1);
+    if (qend == -1) return null;
+
+    int start = qstart + lineOffset + (isOuter ? 0 : 1);
+    int end = qend + lineOffset;
+
+    return new TextRange(start, end);
+  }
+
+  private static int findQuoteLocation(CharBuffer chars, char c, int pos, int dir) {
+    while (pos >= 0 && pos < chars.length()) {
+      if (chars.charAt(pos) == c) {
+        // 見つかった
+        if (pos > 0 && chars.charAt(pos - 1) == '\\') {
+          // 前の文字がエスケープ文字だったら，キャンセル
+        } else {
+          return pos;
+        }
+      }
+      pos += dir;
+    }
+    return -1;
+  }
+
 }
