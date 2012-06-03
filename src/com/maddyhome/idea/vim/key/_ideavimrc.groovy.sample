@@ -16,3 +16,9 @@ parser.registerAction(KeyParser.MAPPING_NORMAL, "GotoDeclaration", Command.OTHER
     new Shortcut(KeyStroke.getKeyStroke(KeyEvent.VK_CLOSE_BRACKET, KeyEvent.CTRL_MASK)))
 parser.registerAction(KeyParser.MAPPING_NORMAL, "Back", Command.OTHER_READONLY, Command.FLAG_MOT_EXCLUSIVE,
     new Shortcut(KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_MASK)))
+
+// Ctrl+N, Ctrl+P でキーワード補完
+parser.registerAction(KeyParser.MAPPING_INSERT, "HippieBackwardCompletion", Command.INSERT, Command.FLAG_CLEAR_STROKES,
+    new Shortcut(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_MASK)))
+parser.registerAction(KeyParser.MAPPING_INSERT, "HippieCompletion", Command.INSERT, Command.FLAG_CLEAR_STROKES,
+    new Shortcut(KeyStroke.getKeyStroke(KeyEvent.VK_P, KeyEvent.CTRL_MASK)))
