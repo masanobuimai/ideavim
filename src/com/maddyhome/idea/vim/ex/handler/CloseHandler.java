@@ -21,11 +21,13 @@ package com.maddyhome.idea.vim.ex.handler;
 
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
+import com.maddyhome.idea.vim.KeyHandler;
 import com.maddyhome.idea.vim.ex.CommandHandler;
 import com.maddyhome.idea.vim.ex.CommandName;
 import com.maddyhome.idea.vim.ex.ExCommand;
 import com.maddyhome.idea.vim.ex.ExException;
-import com.maddyhome.idea.vim.group.CommandGroups;
+
+import javax.swing.*;
 
 /**
  *
@@ -37,8 +39,12 @@ public class CloseHandler extends CommandHandler {
     }, DONT_REOPEN);
   }
 
-  public boolean execute(Editor editor, DataContext context, ExCommand cmd) throws ExException {
-    CommandGroups.getInstance().getFile().closeFile(editor, context);
+  public boolean execute(Editor editor, final DataContext context, ExCommand cmd) throws ExException {
+      SwingUtilities.invokeLater(new Runnable() {
+              public void run() {
+                  KeyHandler.executeAction("CloseEditor", context);
+              }
+          });
 
     return true;
   }
