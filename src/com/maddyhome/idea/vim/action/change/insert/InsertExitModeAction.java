@@ -26,6 +26,8 @@ import com.intellij.openapi.editor.actionSystem.EditorActionHandler;
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
 import com.maddyhome.idea.vim.group.CommandGroups;
 
+import javax.swing.*;
+
 /**
  */
 public class InsertExitModeAction extends EditorAction {
@@ -35,7 +37,16 @@ public class InsertExitModeAction extends EditorAction {
 
   private static class Handler extends EditorActionHandler {
     public void execute(Editor editor, DataContext context) {
-      CommandGroups.getInstance().getChange().processEscape(InjectedLanguageUtil.getTopLevelEditor(editor), context);
+      try {
+        // 強制的にInput MethodをOFFにする
+        // （ここがコケても影響ないようにtryブロックに納める）
+        JComponent component = editor.getComponent();
+        component.enableInputMethods(false);
+        component.getInputContext().setCompositionEnabled(false);
+      } finally {
+        // ホントにやりたいのはこちら（編集モードへの復帰）
+        CommandGroups.getInstance().getChange().processEscape(InjectedLanguageUtil.getTopLevelEditor(editor), context);
+      }
     }
   }
 }
