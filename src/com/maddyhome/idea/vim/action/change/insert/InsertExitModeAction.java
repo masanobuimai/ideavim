@@ -27,6 +27,9 @@ import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
 import com.maddyhome.idea.vim.group.CommandGroups;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.util.Locale;
 
 /**
  */
@@ -36,17 +39,57 @@ public class InsertExitModeAction extends EditorAction {
   }
 
   private static class Handler extends EditorActionHandler {
-    public void execute(Editor editor, DataContext context) {
-      try {
-        // 強制的にInput MethodをOFFにする
-        // （ここがコケても影響ないようにtryブロックに納める）
-        JComponent component = editor.getComponent();
-        component.enableInputMethods(false);
-        component.getInputContext().setCompositionEnabled(false);
-      } finally {
-        // ホントにやりたいのはこちら（編集モードへの復帰）
-        CommandGroups.getInstance().getChange().processEscape(InjectedLanguageUtil.getTopLevelEditor(editor), context);
+    private interface IMControl { void disable(JComponent component); }
+
+    private IMControl imControl = new IMControl() {
+        // デフォルトは何もしない
+        @Override public void disable(JComponent component) { }
+    };
+
+    Handler() {
+      String imControlflag = System.getProperty("ideavim.imcontrol", "");
+      if (imControlflag.equalsIgnoreCase("windows")) {          // Windowsの場合
+        imControl = new IMControl() {
+          @Override public void disable(JComponent component) {
+            try {
+              // 強制的にInput MethodをOFFにする
+              // （ここがコケても影響ないようにtryブロックに納める）
+              component.enableInputMethods(false);
+              component.getInputContext().setCompositionEnabled(false);
+            } catch (Exception ignore) {}
+          }
+        };
+      } else if (imControlflag.equalsIgnoreCase("osx")) {       // Mac OS Xの場合
+        imControl = new IMControl() {
+          @Override public void disable(final JComponent component) {
+            new Thread(new Runnable() {
+              @Override public void run() {
+                try {
+                  Robot robot = new Robot();
+                  // 10回トライして入力モードをUSに切り替える
+                  for (int i = 0; i < 10; i++) {
+                    // USモードになってればおしまい
+                    if (component.getInputContext().getLocale().equals(Locale.US)) break;
+                    // そうでなければ opt + cmd + SPACE を送る
+                    robot.keyPress(KeyEvent.VK_META);
+                    robot.keyPress(KeyEvent.VK_ALT);
+                    robot.keyPress(KeyEvent.VK_SPACE);
+                    robot.keyRelease(KeyEvent.VK_SPACE);
+                    robot.keyRelease(KeyEvent.VK_ALT);
+                    robot.keyRelease(KeyEvent.VK_META);
+                    Thread.sleep(200);    // wait
+                  }
+                } catch (Exception ignore) {}
+              }
+            }, "IMControlThread").start();
+          }
+        };
       }
+    }
+
+    public void execute(Editor editor, DataContext context) {
+      imControl.disable(editor.getComponent());
+      CommandGroups.getInstance().getChange().processEscape(InjectedLanguageUtil.getTopLevelEditor(editor), context);
     }
   }
 }
