@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.util.Pair;
 import com.maddyhome.idea.vim.common.TextRange;
+import com.maddyhome.idea.vim.option.BoundStringOption;
 import com.maddyhome.idea.vim.option.ListOption;
 import com.maddyhome.idea.vim.option.OptionChangeEvent;
 import com.maddyhome.idea.vim.option.OptionChangeListener;
@@ -134,6 +135,11 @@ public class SearchHelper {
       else {
         bend--;
       }
+    }
+
+    BoundStringOption opt = (BoundStringOption)Options.getInstance().getOption("selection");
+    if (opt.getValue().equals("exclusive")) {
+      bend++;
     }
 
     return new TextRange(bstart, bend);
@@ -773,6 +779,10 @@ public class SearchHelper {
         start--;
       }
     }
+    BoundStringOption opt = (BoundStringOption)Options.getInstance().getOption("selection");
+    if (opt.getValue().equals("exclusive")) {
+      end++;
+    }
 
     if (logger.isDebugEnabled()) {
       logger.debug("start=" + start);
@@ -1365,22 +1375,24 @@ public class SearchHelper {
     int offset = editor.getCaretModel().getOffset();
     int ssel = editor.getSelectionModel().getSelectionStart();
     int esel = editor.getSelectionModel().getSelectionEnd();
-    if (Math.abs(esel - ssel) > 1) {
+    BoundStringOption opt = (BoundStringOption)Options.getInstance().getOption("selection");
+    int adjust = opt.getValue().equals("exclusive") ? 1 : 0;
+    if (Math.abs(esel - ssel) + adjust > 1) {
       int start;
       int end;
       // Forward selection
-      if (offset == esel - 1) {
+      if (offset == esel - 1 + adjust) {
         start = ssel;
         end = findSentenceRangeEnd(editor, chars, offset, max, count, isOuter, true);
 
-        return new TextRange(start, end);
+        return new TextRange(start, end + adjust);
       }
       // Backward selection
       else {
-        end = esel - 1;
+        end = esel;
         start = findSentenceRangeEnd(editor, chars, offset, max, -count, isOuter, true);
 
-        return new TextRange(end, start);
+        return new TextRange(end - 1, start);
       }
     }
     else {
@@ -1393,7 +1405,7 @@ public class SearchHelper {
 
       int start = findSentenceRangeEnd(editor, chars, offset, max, -1, space, false);
 
-      return new TextRange(start, end);
+      return new TextRange(start, end + adjust);
     }
   }
 
@@ -1662,6 +1674,11 @@ public class SearchHelper {
 
     int start = qstart + lineOffset + (isOuter ? 0 : 1);
     int end = qend + lineOffset;
+
+    BoundStringOption opt = (BoundStringOption)Options.getInstance().getOption("selection");
+    boolean isExclusive = opt.getValue().equals("exclusive");
+    if (isExclusive && isOuter) end++;
+    if (!isExclusive && !isOuter) end--;
 
     return new TextRange(start, end);
   }
