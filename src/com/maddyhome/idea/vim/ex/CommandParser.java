@@ -73,6 +73,7 @@ public class CommandParser {
     new ActionListHandler();
     new AsciiHandler();
     new CmdFilterHandler();
+      new CompileHandler();
     new CopyTextHandler();
     new DeleteLinesHandler();
     new DigraphHandler();
@@ -83,7 +84,9 @@ public class CommandParser {
     new FindClassHandler();
     new FindFileHandler();
     new FindSymbolHandler();
+      new GenerateHandler();
     new GotoCharacterHandler();
+      new GrepHandler();
     //new GotoLineHandler(); - not needed here
     new HelpHandler();
     new HistoryHandler();
@@ -101,6 +104,7 @@ public class CommandParser {
     new PromptReplaceHandler();
     new PutLinesHandler();
     new QuitHandler();
+      new QuickFixHandler();
     new RedoHandler();
     new RegistersHandler();
     new RepeatHandler();
